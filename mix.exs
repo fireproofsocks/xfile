@@ -79,7 +79,7 @@ defmodule Xfile.MixProject do
     [
       maintainers: ["Everett Griffiths"],
       licenses: ["Apache 2.0"],
-      logo: "assets/logo.png",
+      logo: "assets/alien.png",
       links: links(),
       files: [
         "lib",
