@@ -83,7 +83,7 @@ defmodule Xfile.MixProject do
       links: links(),
       files: [
         "lib",
-        "assets/logo.png",
+        "assets/alien.png",
         "mix.exs",
         "README*",
         "CHANGELOG*",
