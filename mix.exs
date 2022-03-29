@@ -78,7 +78,7 @@ defmodule Xfile.MixProject do
   defp package do
     [
       maintainers: ["Everett Griffiths"],
-      licenses: ["Apache 2.0"],
+      licenses: ["Apache-2.0"],
       logo: "assets/alien.png",
       links: links(),
       files: [
