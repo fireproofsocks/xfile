@@ -7,8 +7,12 @@ defmodule Xfile do
   @doc """
   Like the venerable command-line utility, `grep` searches lines in the given file
   using the given pattern, returning only the matching lines as a stream.
-  The pattern must be compatible with `String.contains?/2`, so it may be a string,
-  a list of strings, or a regular expression.
+
+  The given pattern can be one of the following:
+
+  - an arity 1 function which returns a boolean; `true` indicates a match.
+  - a pattern compatible with `String.contains?/2`, i.e. a string, a list of strings,
+  or a regular expression.
 
   > #### Stream {: .info}
   >
@@ -21,10 +25,31 @@ defmodule Xfile do
       #Function<59.58486609/2 in Stream.transform/3>
 
       iex(1)> Xfile.grep("dir", ".gitignore") |> Enum.to_list()
-      ["# The directory Mix will write compiled artifacts to.\n",
-      "# The directory Mix downloads your dependencies sources to.\n"]
+      ["# The directory Mix will write compiled artifacts to.\\n",
+      "# The directory Mix downloads your dependencies sources to.\\n"]
+
+  Using a function to evaluate file lines:
+
+      iex> f = fn line ->
+        [serial_number, _] = String.split(line, " ")
+        String.to_integer(num) > 214
+      end
+      iex> Xfile.grep(f, "file/w/line-numbers") |> Enum.to_list()
+      ["215 Sprocket\\n", "216 Gear\\n", ...]
   """
-  @spec grep(pattern :: String.pattern(), file :: Path.t()) :: Enumerable.t()
+  @spec grep(pattern :: String.pattern() | (String.t() -> boolean()), file :: Path.t()) ::
+          Enumerable.t()
+  def grep(pattern, file) when is_function(pattern, 1) do
+    file
+    |> File.stream!()
+    |> Stream.flat_map(fn line ->
+      case pattern.(line) do
+        true -> [line]
+        false -> []
+      end
+    end)
+  end
+
   def grep(pattern, file) do
     file
     |> File.stream!()
@@ -41,6 +66,8 @@ defmodule Xfile do
   all files in the given path, returning only a list of file names (i.e. paths)
   whose contents have one or more lines that match the pattern.
 
+  Internally, this relies on `grep/2`.
+
   > #### Stream {: .info}
   >
   > `Xfile.grep_rl/3` returns its result as a `Stream`, so you must
@@ -53,6 +80,8 @@ defmodule Xfile do
   - `grep/2` for searching a single file and returning the matching lines
   - `ls/2` using the `:filter` option to evaluate only the _names_ of the files.
   """
+  @spec grep_rl(pattern :: String.pattern(), path :: Path.t(), opts :: Keyword.t()) ::
+          Enumerable.t()
   def grep_rl(pattern, path, _opts \\ []) do
     path
     |> ls!()
@@ -100,7 +129,7 @@ defmodule Xfile do
   end
 
   @doc """
-  As `Xfile.line_count/2`, but returns raw results on success or raises on `:error`.
+  As `Xfile.line_count/1`, but returns raw results on success or raises on `:error`.
   """
   @spec line_count!(file :: Path.t()) :: non_neg_integer() | none()
   def line_count!(file) when is_binary(file) do

@@ -2,9 +2,19 @@ defmodule XfileTest do
   use ExUnit.Case
 
   describe "grep/2" do
-    test "matches lines" do
+    test "matches lines using string pattern" do
       assert ["1 duck\n", "2 duck\n", "4 duck\n"] ==
                "duck" |> Xfile.grep("test/support/b") |> Enum.to_list()
+    end
+
+    test "matches lines using arity 1 function" do
+      f = fn line ->
+        [num, _] = String.split(line, " ")
+        String.to_integer(num) > 2
+      end
+
+      assert ["3 goose\n", "4 duck\n"] ==
+               f |> Xfile.grep("test/support/b") |> Enum.to_list()
     end
   end
 
