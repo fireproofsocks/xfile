@@ -5,6 +5,111 @@ defmodule Xfile do
   """
 
   @doc """
+  Like the venerable command-line utility, `grep` searches lines in the given file
+  using the given pattern, returning only the matching lines as a stream.
+  The pattern must be compatible with `String.contains?/2`, so it may be a string,
+  a list of strings, or a regular expression.
+
+  > #### Stream {: .info}
+  >
+  > `Xfile.grep/2` returns its result as a `Stream`, so you must remember to convert
+  > it to a list via `Enum.to_list/1` if you are not lazily evaluating its result.
+
+  ## Examples
+
+      iex(1)> Xfile.grep(~r/needle/, "path/to/file")
+      #Function<59.58486609/2 in Stream.transform/3>
+
+      iex(1)> Xfile.grep("dir", ".gitignore") |> Enum.to_list()
+      ["# The directory Mix will write compiled artifacts to.\n",
+      "# The directory Mix downloads your dependencies sources to.\n"]
+  """
+  @spec grep(pattern :: String.pattern(), file :: Path.t()) :: Enumerable.t()
+  def grep(pattern, file) do
+    file
+    |> File.stream!()
+    |> Stream.flat_map(fn line ->
+      case String.contains?(line, pattern) do
+        true -> [line]
+        false -> []
+      end
+    end)
+  end
+
+  @doc """
+  This function mimics the functionality of `grep -rl`: it recursively searches
+  all files in the given path, returning only a list of file names (i.e. paths)
+  whose contents have one or more lines that match the pattern.
+
+  > #### Stream {: .info}
+  >
+  > `Xfile.grep_rl/3` returns its result as a `Stream`, so you must
+  > remember to convert it to a list via `Enum.to_list/1` if you are not lazily
+  > evaluating its result.
+
+
+  ## See Also
+
+  - `grep/2` for searching a single file and returning the matching lines
+  - `ls/2` using the `:filter` option to evaluate only the _names_ of the files.
+  """
+  def grep_rl(pattern, path, _opts \\ []) do
+    path
+    |> ls!()
+    |> Stream.flat_map(fn file ->
+      pattern
+      |> grep(file)
+      |> Enum.count()
+      |> case do
+        0 -> []
+        _ -> [file]
+      end
+    end)
+  end
+
+  @doc """
+  Counts the number of lines in the given file, offering functionality similar to `wc -l`.
+  Directories are not allowed. This is just some sugar around `File.stream!/1`.
+
+  > #### Newlines {: .info}
+  >
+  > This function technically counts new lines, which may result in "off-by-one"
+  > errors when the last line of a file is not terminated with a newline.
+
+  ## Examples
+
+      iex> Xfile.line_count(".gitignore")
+      {:ok, 27}
+      iex> Xfile.line_count("/tmp"}
+      {:error, :directory}
+  """
+  @spec(line_count(file :: Path.t()) :: {:ok, non_neg_integer()}, {:error, any()})
+  def line_count(file) when is_binary(file) do
+    file
+    |> File.dir?()
+    |> case do
+      true ->
+        {:error, "Invalid input"}
+
+      false ->
+        {:ok,
+         file
+         |> File.stream!()
+         |> Enum.count()}
+    end
+  end
+
+  @doc """
+  As `Xfile.line_count/2`, but returns raw results on success or raises on `:error`.
+  """
+  @spec line_count!(file :: Path.t()) :: non_neg_integer() | none()
+  def line_count!(file) when is_binary(file) do
+    file
+    |> File.stream!()
+    |> Enum.count()
+  end
+
+  @doc """
   Like `File.ls/1`, this returns the list of _files_ in the given directory, but it
   makes available some useful options to support recursive listing and filtering
   results programmatically.
@@ -14,6 +119,11 @@ defmodule Xfile do
   > Unlike `File.ls/1`, `Xfile.ls/2` returns its result as a `Stream`, so you must
   > remember to convert it to a list via `Enum.to_list/1` if you are not lazily
   > evaluating its result.
+
+  ## Differences between `File.ls/1`
+
+  - `Xfile.ls/2` returns results as a `Stream`
+  - `Xfile.ls/2` returns full paths (relative or absolute) instead of just basenames.
 
   ## Options
 
@@ -26,7 +136,6 @@ defmodule Xfile do
     OR an arity 1 function that receives the full file path and returns a boolean value.
     If the filter operation returns `true`, the file will be included in the
     output. Any other output will cause the file to be filtered from the output. Optional.
-
 
   ## Examples
 

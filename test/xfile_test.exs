@@ -1,6 +1,40 @@
 defmodule XfileTest do
   use ExUnit.Case
 
+  describe "grep/2" do
+    test "matches lines" do
+      assert ["1 duck\n", "2 duck\n", "4 duck\n"] ==
+               "duck" |> Xfile.grep("test/support/b") |> Enum.to_list()
+    end
+  end
+
+  describe "grep_rl/3" do
+    test "finds matching files" do
+      assert ["test/support/d1/d2/c2.txt", "test/support/d1/b1.txt", "test/support/a.txt"] =
+               "xyz" |> Xfile.grep_rl("test/support") |> Enum.to_list()
+    end
+  end
+
+  describe "line_count/1" do
+    test ":ok" do
+      assert {:ok, 5} == Xfile.line_count("test/support/a.txt")
+    end
+
+    test ":error" do
+      assert {:error, _} = Xfile.line_count("test/support")
+    end
+  end
+
+  describe "line_count!/1" do
+    test "ok" do
+      assert 5 == Xfile.line_count!("test/support/a.txt")
+    end
+
+    test "raises error on directory" do
+      assert_raise File.Error, fn -> Xfile.line_count!("test/support") end
+    end
+  end
+
   describe "ls/2" do
     test "recursively lists directory contents" do
       {:ok, stream} = Xfile.ls("test/support")
