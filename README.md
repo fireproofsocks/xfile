@@ -10,6 +10,8 @@
 
 ## Examples
 
+### ls
+
 Use a regular expression to return only `.txt` files:
 
       iex> {:ok, stream} = Xfile.ls("path/to/files", filter: ~r/\\.txt$/)
@@ -48,18 +50,28 @@ Limit the depth of the recursion to the given directory and its subdirectories, 
         "top/dir/sub1/y"
       ]
 
+### grep
+
+You can use a string, a regular expression, or an arity 1 function to find matching lines within the given file:
+
+      iex> Xfile.grep("dir", ".gitignore") |> Enum.to_list()
+      ["# The directory Mix will write compiled artifacts to.\\n",
+      "# The directory Mix downloads your dependencies sources to.\\n"]
+
+See [Xfile](https://hexdocs.pm/xfile/Xfile.html) for more functions and examples.
+
+--------------
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 by adding `xfile` to your list of dependencies in `mix.exs`:
 
-```elixir
-def deps do
-  [
-    {:xfile, "~> 0.1.0"}
-  ]
-end
-```
+    def deps do
+      [
+        {:xfile, "~> 0.2.0"}
+      ]
+    end
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can

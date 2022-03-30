@@ -21,10 +21,10 @@ defmodule Xfile do
 
   ## Examples
 
-      iex(1)> Xfile.grep(~r/needle/, "path/to/file")
+      iex> Xfile.grep(~r/needle/, "path/to/file")
       #Function<59.58486609/2 in Stream.transform/3>
 
-      iex(1)> Xfile.grep("dir", ".gitignore") |> Enum.to_list()
+      iex> Xfile.grep("dir", ".gitignore") |> Enum.to_list()
       ["# The directory Mix will write compiled artifacts to.\\n",
       "# The directory Mix downloads your dependencies sources to.\\n"]
 
