@@ -14,7 +14,7 @@
 
 Use a regular expression to return only `.txt` files:
 
-      iex> {:ok, stream} = Xfile.ls("path/to/files", filter: ~r/\\.txt$/)
+      iex> {:ok, stream} = Xfile.ls("path/to/files", filter: ~r/\.txt$/)
       {:ok, #Function<59.58486609/2 in Stream.transform/3>}
       iex> Enum.to_list(stream)
       [
@@ -69,7 +69,7 @@ by adding `xfile` to your list of dependencies in `mix.exs`:
 
     def deps do
       [
-        {:xfile, "~> 0.2.0"}
+        {:xfile, "~> 0.3.0"}
       ]
     end
 

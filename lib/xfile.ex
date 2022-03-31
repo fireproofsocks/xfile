@@ -1,7 +1,8 @@
 defmodule Xfile do
   @moduledoc """
-  `Xfile` contains augmentations of the built-in `File` module, such as supporting
-  streams, recursive listing of files, counting lines, grep, and programmatic filtering.
+  `Xfile` contains augmentations of the built-in `File` module, including the
+  support of streams, the recursive listing of files, counting lines, grep, and
+  programmatic filtering.
   """
 
   @doc """
@@ -37,6 +38,7 @@ defmodule Xfile do
       iex> Xfile.grep(f, "store/products.csv") |> Enum.to_list()
       ["215,Sprocket,9.99\\n", "216,Gear,5.00\\n", ...]
   """
+  @doc since: "0.2.0"
   @spec grep(pattern :: String.pattern() | (String.t() -> boolean()), file :: Path.t()) ::
           Enumerable.t()
   def grep(pattern, file) when is_function(pattern, 1) do
@@ -63,6 +65,7 @@ defmodule Xfile do
         "\\n"
       ]
   """
+  @doc since: "0.3.0"
   @spec head(file :: Path.t(), n :: non_neg_integer()) :: Enumerable.t()
   def head(file, n) when is_binary(file) and is_integer(n) and n > 0 do
     file
@@ -85,9 +88,14 @@ defmodule Xfile do
   > remember to convert it to a list via `Enum.to_list/1` if you are not lazily
   > evaluating its result.
 
+  ## Options
+
+  Options are the same as those supported by `ls/2`. Use them to control which files
+  are subjected to the pattern matching.
+
   ## Examples
 
-      iex> Xfile.grep_rl("[error]", "tmp/logs") |> Enum.to_list()
+      iex> Xfile.grep_rl("[error]", "tmp/logs", recursive: false) |> Enum.to_list()
       [
         "tmp/logs/server.1.log",
         "tmp/logs/cache.log",
@@ -99,11 +107,12 @@ defmodule Xfile do
   - `grep/2` for searching a single file and returning the matching lines
   - `ls/2` using the `:filter` option to evaluate only the _names_ of the files.
   """
+  @doc since: "0.2.0"
   @spec grep_rl(pattern :: String.pattern(), path :: Path.t(), opts :: Keyword.t()) ::
           Enumerable.t()
-  def grep_rl(pattern, path, _opts \\ []) do
+  def grep_rl(pattern, path, opts \\ []) do
     path
-    |> ls!()
+    |> ls!(opts)
     |> Stream.filter(fn file ->
       pattern
       |> grep(file)
@@ -128,6 +137,7 @@ defmodule Xfile do
       iex> Xfile.line_count("/tmp"}
       {:error, :directory}
   """
+  @doc since: "0.2.0"
   @spec(line_count(file :: Path.t()) :: {:ok, non_neg_integer()}, {:error, any()})
   def line_count(file) when is_binary(file) do
     file
@@ -152,6 +162,7 @@ defmodule Xfile do
       iex> Xfile.line_count!(".gitignore")
       27
   """
+  @doc since: "0.2.0"
   @spec line_count!(file :: Path.t()) :: non_neg_integer() | none()
   def line_count!(file) when is_binary(file) do
     file
@@ -268,6 +279,7 @@ defmodule Xfile do
         "/tmp\\n"
       ]
   """
+  @doc since: "0.3.0"
   @spec tail(file :: Path.t(), n :: non_neg_integer()) :: Enumerable.t()
   def tail(file, n) when is_binary(file) and is_integer(n) and n > 0 do
     start_line = line_count!(file) - n
