@@ -42,23 +42,13 @@ defmodule Xfile do
   def grep(pattern, file) when is_function(pattern, 1) do
     file
     |> File.stream!()
-    |> Stream.flat_map(fn line ->
-      case pattern.(line) do
-        true -> [line]
-        false -> []
-      end
-    end)
+    |> Stream.filter(fn line -> pattern.(line) end)
   end
 
   def grep(pattern, file) do
     file
     |> File.stream!()
-    |> Stream.flat_map(fn line ->
-      case String.contains?(line, pattern) do
-        true -> [line]
-        false -> []
-      end
-    end)
+    |> Stream.filter(fn line -> String.contains?(line, pattern) end)
   end
 
   @doc """
@@ -85,14 +75,11 @@ defmodule Xfile do
   def grep_rl(pattern, path, _opts \\ []) do
     path
     |> ls!()
-    |> Stream.flat_map(fn file ->
+    |> Stream.filter(fn file ->
       pattern
       |> grep(file)
       |> Enum.count()
-      |> case do
-        0 -> []
-        _ -> [file]
-      end
+      |> Kernel.>(0)
     end)
   end
 
