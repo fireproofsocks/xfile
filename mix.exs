@@ -1,7 +1,7 @@
 defmodule Xfile.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
   @source_url "https://github.com/fireproofsocks/xfile"
 
   def project do
@@ -52,8 +52,8 @@ defmodule Xfile.MixProject do
 
   defp description do
     """
-    Augmentations of the built-in File module, including the ability to ls recursively,
-    stream output, and filter files programmatically.
+    Augmentations of the File module, including the ability to list files
+    recursively, grep for patterns, stream output, and filter files programmatically.
     """
   end
 

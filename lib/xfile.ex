@@ -1,7 +1,7 @@
 defmodule Xfile do
   @moduledoc """
   `Xfile` contains augmentations of the built-in `File` module, such as supporting
-  streams, recursion, and programmatic filtering.
+  streams, recursive listing of files, counting lines, grep, and programmatic filtering.
   """
 
   @doc """
@@ -34,8 +34,8 @@ defmodule Xfile do
         [serial_number, _] = String.split(line, " ")
         String.to_integer(num) > 214
       end
-      iex> Xfile.grep(f, "file/w/line-numbers") |> Enum.to_list()
-      ["215 Sprocket\\n", "216 Gear\\n", ...]
+      iex> Xfile.grep(f, "store/products.csv") |> Enum.to_list()
+      ["215,Sprocket,9.99\\n", "216,Gear,5.00\\n", ...]
   """
   @spec grep(pattern :: String.pattern() | (String.t() -> boolean()), file :: Path.t()) ::
           Enumerable.t()
@@ -52,6 +52,27 @@ defmodule Xfile do
   end
 
   @doc """
+  Displays first `n` lines of the file, returned as an enumerable stream.
+
+  ## Examples
+
+      iex> Xfile.head(".gitignore", 3) |> Enum.to_list()
+      [
+        "# The directory Mix will write compiled artifacts to.\\n",
+        "/_build/\\n",
+        "\\n"
+      ]
+  """
+  @spec head(file :: Path.t(), n :: non_neg_integer()) :: Enumerable.t()
+  def head(file, n) when is_binary(file) and is_integer(n) and n > 0 do
+    file
+    |> File.stream!()
+    |> Stream.transform(0, fn line, acc ->
+      if acc < n, do: {[line], acc + 1}, else: {:halt, acc}
+    end)
+  end
+
+  @doc """
   This function mimics the functionality of `grep -rl`: it recursively searches
   all files in the given path, returning only a list of file names (i.e. paths)
   whose contents have one or more lines that match the pattern.
@@ -64,6 +85,14 @@ defmodule Xfile do
   > remember to convert it to a list via `Enum.to_list/1` if you are not lazily
   > evaluating its result.
 
+  ## Examples
+
+      iex> Xfile.grep_rl("[error]", "tmp/logs") |> Enum.to_list()
+      [
+        "tmp/logs/server.1.log",
+        "tmp/logs/cache.log",
+        "tmp/logs/server.2.log"
+      ]
 
   ## See Also
 
@@ -117,6 +146,11 @@ defmodule Xfile do
 
   @doc """
   As `Xfile.line_count/1`, but returns raw results on success or raises on `:error`.
+
+  ## Examples
+
+      iex> Xfile.line_count!(".gitignore")
+      27
   """
   @spec line_count!(file :: Path.t()) :: non_neg_integer() | none()
   def line_count!(file) when is_binary(file) do
@@ -220,6 +254,29 @@ defmodule Xfile do
       {:ok, results} -> results
       {:error, error} -> raise error
     end
+  end
+
+  @doc """
+  Displays the last `n` lines of the file, returned as an enumerable stream.
+
+  ## Examples
+
+      iex> Xfile.tail(".gitignore", 3) |> Enum.to_list()
+      [
+        "\\n",
+        "# Temporary files for e.g. tests\\n",
+        "/tmp\\n"
+      ]
+  """
+  @spec tail(file :: Path.t(), n :: non_neg_integer()) :: Enumerable.t()
+  def tail(file, n) when is_binary(file) and is_integer(n) and n > 0 do
+    start_line = line_count!(file) - n
+
+    file
+    |> File.stream!()
+    |> Stream.transform(0, fn line, acc ->
+      if acc >= start_line, do: {[line], acc + 1}, else: {[], acc + 1}
+    end)
   end
 
   # `traverse/2` receives the result of `File.ls/1`, which acts as like `File.dir?/2`.

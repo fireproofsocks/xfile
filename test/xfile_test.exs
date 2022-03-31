@@ -25,6 +25,12 @@ defmodule XfileTest do
     end
   end
 
+  describe "head/2" do
+    test "returns the top n lines" do
+      assert ["this\n", "has\n"] == Xfile.head("test/support/a.txt", 2) |> Enum.to_list()
+    end
+  end
+
   describe "line_count/1" do
     test ":ok" do
       assert {:ok, 5} == Xfile.line_count("test/support/a.txt")
@@ -122,6 +128,12 @@ defmodule XfileTest do
 
     test "raises on error" do
       assert_raise RuntimeError, fn -> Xfile.ls!("does-not-exist") end
+    end
+  end
+
+  describe "tail/2" do
+    test "returns the last n lines" do
+      assert ["text\n", "xyz\n"] == Xfile.tail("test/support/a.txt", 2) |> Enum.to_list()
     end
   end
 end
