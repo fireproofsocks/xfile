@@ -6,7 +6,9 @@
 [![License](https://img.shields.io/hexpm/l/xfile.svg)](https://hex.pm/packages/xfile)
 [![Last Updated](https://img.shields.io/github/last-commit/fireproofsocks/xfile.svg)](https://github.com/fireproofsocks/xfile/commits/master)
 
-`Xfile` is a utility module providing augmentations to the functions in the built-in `File` module, specifically adding useful functionality to the `ls` function.
+`Xfile` is a utility module providing augmentations to the functions in the built-in `File` module, including the support of recursive file listing, `grep` and other programmatic filtering of filenames and lines, line counts (think `wc -l`), and `head` and `tail` functions.
+
+See the [Xfile module](https://hexdocs.pm/xfile/Xfile.html) for full API documentation.
 
 ## Examples
 
@@ -54,7 +56,9 @@ Limit the depth of the recursion to the given directory and its subdirectories, 
 
 You can use a string, a regular expression, or an arity 1 function to find matching lines within the given file:
 
-      iex> Xfile.grep("dir", ".gitignore") |> Enum.to_list()
+      iex> Xfile.grep("dir", ".gitignore") 
+      |> Enum.to_list()
+
       ["# The directory Mix will write compiled artifacts to.\\n",
       "# The directory Mix downloads your dependencies sources to.\\n"]
 
@@ -69,7 +73,7 @@ by adding `xfile` to your list of dependencies in `mix.exs`:
 
     def deps do
       [
-        {:xfile, "~> 0.3.0"}
+        {:xfile, "~> 0.4.0"}
       ]
     end
 
