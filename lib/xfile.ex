@@ -50,6 +50,12 @@ defmodule Xfile do
     |> Stream.filter(fn line -> pattern.(line) end)
   end
 
+  def grep(%Regex{} = pattern, file) do
+    file
+    |> File.stream!()
+    |> Stream.filter(fn line -> Regex.match?(pattern, line) end)
+  end
+
   def grep(pattern, file) do
     file
     |> File.stream!()
