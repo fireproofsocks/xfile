@@ -210,8 +210,9 @@ defmodule Xfile do
     positive integer indicating the maximum depth (where `false` is equivalent to `0`
     and would list only the contents of the given directory). Default: `true`
 
-  - `:filter` can be either a regular expression to be used with `String.match?/2`
-    OR an arity 1 function that receives the full file path and returns a boolean value.
+  - `:filter` can be either a regular expression to be used with `String.match?/2`,
+    a string or a list of strings to be used with `String.contains?/2`, OR an
+    arity 1 function that receives the full file path and returns a boolean value.
     If the filter operation returns `true`, the file will be included in the
     output. Any other output will cause the file to be filtered from the output. Optional.
 
