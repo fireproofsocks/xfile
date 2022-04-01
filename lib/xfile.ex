@@ -331,9 +331,11 @@ defmodule Xfile do
     end
   end
 
+  defp filter_file(_, nil), do: true
+
   defp filter_file(file, function) when is_function(function, 1), do: function.(file)
 
   defp filter_file(file, %Regex{} = regex), do: String.match?(file, regex)
 
-  defp filter_file(_, _), do: true
+  defp filter_file(file, pattern), do: String.contains?(file, pattern)
 end

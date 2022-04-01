@@ -87,7 +87,7 @@ defmodule XfileTest do
              ] = Enum.to_list(stream)
     end
 
-    test ":filter function can filter by extension" do
+    test ":filter by function" do
       {:ok, stream} = Xfile.ls("test/support", filter: fn x -> String.ends_with?(x, ".txt") end)
 
       assert [
@@ -97,7 +97,7 @@ defmodule XfileTest do
              ] = Enum.to_list(stream)
     end
 
-    test ":filter supports regular expression matching" do
+    test ":filter by regex" do
       {:ok, stream} = Xfile.ls("test/support", filter: ~r/\/d1\//)
 
       assert [
@@ -107,6 +107,16 @@ defmodule XfileTest do
                "test/support/d1/d2/c2.txt",
                "test/support/d1/b1.txt",
                "test/support/d1/a1"
+             ] = Enum.to_list(stream)
+    end
+
+    test ":filter by simple string" do
+      {:ok, stream} = Xfile.ls("test/support", filter: "d2")
+
+      assert [
+               "test/support/d1/d2/b2",
+               "test/support/d1/d2/a2",
+               "test/support/d1/d2/c2.txt"
              ] = Enum.to_list(stream)
     end
   end
