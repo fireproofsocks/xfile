@@ -124,6 +124,18 @@ defmodule XfileTest do
                "test/support/d1/d2/c2.txt"
              ] = Enum.to_list(stream)
     end
+
+    test ":show_dirs? false shows no results when dir contains only sub-dirs" do
+      {:ok, stream} = Xfile.ls("deps", show_dirs?: false, recursive: false)
+
+      assert [] = Enum.to_list(stream)
+    end
+
+    test ":show_dirs? true includes dirs contains only sub-dirs" do
+      {:ok, stream} = Xfile.ls("deps", show_dirs?: true, recursive: false)
+
+      assert Enum.count(stream) > 0
+    end
   end
 
   describe "ls!/2" do

@@ -189,8 +189,8 @@ defmodule Xfile do
   end
 
   @doc """
-  Returns the list of _files_ (not directories) in the given directory, with the
-  ability to control listing files recursively and filtering results programmatically.
+  Returns the list of _files_ in the given directory with the ability to control
+  listing files recursively and filtering results programmatically.
 
   > #### Stream {: .info}
   >
@@ -215,6 +215,13 @@ defmodule Xfile do
     arity 1 function that receives the full file path and returns a boolean value.
     If the filter operation returns `true`, the file will be included in the
     output. Any other output will cause the file to be filtered from the output. Optional.
+
+  - `:show_dirs?` boolean. When listing the contents of a directory that contains
+    sub-directories _and_ `:recursive` option is not `true`, this boolean controls
+    whether or not the sub-directories should be included in the output (provided
+    they pass any defined `:filter`). This option is ignored when `:recursive` is
+    `true`. Setting this option to `true` will yield results closer to what `File.ls/1`
+    returns. Default: `false`.
 
   ## Examples
 
@@ -322,11 +329,20 @@ defmodule Xfile do
 
   # at max depth
   defp traverse({:ok, files}, path, opts, _current_depth, _max_depth) do
+    show_dirs? = Keyword.get(opts, :show_dirs?, false)
+    filter = Keyword.get(opts, :filter)
+
     files
     |> Stream.flat_map(fn f ->
-      case !File.dir?("#{path}/#{f}") && filter_file("#{path}/#{f}", Keyword.get(opts, :filter)) do
-        true -> ["#{path}/#{f}"]
-        _ -> []
+      cond do
+        !File.dir?("#{path}/#{f}") && filter_file("#{path}/#{f}", filter) ->
+          ["#{path}/#{f}"]
+
+        File.dir?("#{path}/#{f}") && show_dirs? && filter_file("#{path}/#{f}", filter) ->
+          ["#{path}/#{f}"]
+
+        true ->
+          []
       end
     end)
   end
