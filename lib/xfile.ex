@@ -12,8 +12,11 @@ defmodule Xfile do
   The given pattern can be one of the following:
 
   - an arity 1 function which returns a boolean; `true` indicates a match.
-  - a pattern compatible with `String.contains?/2`, i.e. a string, a list of strings,
-  or a regular expression.
+  - a string
+  - a list of strings
+  - a regular expression
+
+  See `String.contains?/2` for viable inputs.
 
   > #### Stream {: .info}
   >
@@ -54,31 +57,18 @@ defmodule Xfile do
   end
 
   @doc """
-  Displays first `n` lines of the file, returned as an enumerable stream.
-
-  ## Examples
-
-      iex> Xfile.head(".gitignore", 3) |> Enum.to_list()
-      [
-        "# The directory Mix will write compiled artifacts to.\\n",
-        "/_build/\\n",
-        "\\n"
-      ]
-  """
-  @doc since: "0.3.0"
-  @spec head(file :: Path.t(), n :: non_neg_integer()) :: Enumerable.t()
-  def head(file, n) when is_binary(file) and is_integer(n) and n > 0 do
-    file
-    |> File.stream!()
-    |> Stream.transform(0, fn line, acc ->
-      if acc < n, do: {[line], acc + 1}, else: {:halt, acc}
-    end)
-  end
-
-  @doc """
   This function mimics the functionality of `grep -rl`: it recursively searches
   all files in the given path, returning only a list of file names (i.e. paths)
   whose contents have one or more lines that match the pattern.
+
+  ## Pattern
+
+  The given pattern can be one of the following:
+
+  - an arity 1 function which returns a boolean; `true` indicates a match.
+  - a string
+  - a list of strings
+  - a regular expression
 
   Internally, this relies on `grep/2`.
 
@@ -122,6 +112,28 @@ defmodule Xfile do
   end
 
   @doc """
+  Displays first `n` lines of the file, returned as an enumerable stream.
+
+  ## Examples
+
+      iex> Xfile.head(".gitignore", 3) |> Enum.to_list()
+      [
+        "# The directory Mix will write compiled artifacts to.\\n",
+        "/_build/\\n",
+        "\\n"
+      ]
+  """
+  @doc since: "0.3.0"
+  @spec head(file :: Path.t(), n :: non_neg_integer()) :: Enumerable.t()
+  def head(file, n) when is_binary(file) and is_integer(n) and n > 0 do
+    file
+    |> File.stream!()
+    |> Stream.transform(0, fn line, acc ->
+      if acc < n, do: {[line], acc + 1}, else: {:halt, acc}
+    end)
+  end
+
+  @doc """
   Counts the number of lines in the given file, offering functionality similar to `wc -l`.
   Directories are not allowed. This is just some sugar around `File.stream!/1`.
 
@@ -135,7 +147,7 @@ defmodule Xfile do
       iex> Xfile.line_count(".gitignore")
       {:ok, 27}
       iex> Xfile.line_count("/tmp"}
-      {:error, :directory}
+      {:error, "Invalid input"}
   """
   @doc since: "0.2.0"
   @spec(line_count(file :: Path.t()) :: {:ok, non_neg_integer()}, {:error, any()})
@@ -171,9 +183,8 @@ defmodule Xfile do
   end
 
   @doc """
-  Like `File.ls/1`, this returns the list of _files_ in the given directory, but it
-  makes available some useful options to support recursive listing and filtering
-  results programmatically.
+  Returns the list of _files_ (not directories) in the given directory, with the
+  ability to control listing files recursively and filtering results programmatically.
 
   > #### Stream {: .info}
   >
